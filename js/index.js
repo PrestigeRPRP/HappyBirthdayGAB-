@@ -464,46 +464,57 @@ preloadImages('.grid__img').then(() => {
 });
 
 
+
 const audio = document.getElementById('myAudio');
-    audio.volume = 0.1; // Set volume to 0.5
-    let hasPlayed = false; // Flag to check if audio has played
+audio.volume = 0.1; // Set volume to 10%
+let hasPlayed = false; // Flag to check if audio has played
+let isScrolling = false; // Flag to indicate auto-scrolling
+let scrollTimeout; // Timeout to detect inactivity
 
-    window.addEventListener('scroll', () => {
-        if (!hasPlayed) {
-            audio.play(); // Play the audio
-            hasPlayed = true; // Set the flag to true to prevent replay
-        }
-    }); 
-
-    let scrollTimeout;
-    let isScrolling = false;
-    
-    // Function to trigger smooth auto-scroll
-    function autoScroll() {
-        if (!isScrolling) {
-            isScrolling = true;
-            function smoothScroll() {
-                window.scrollBy(0, 1); // Adjust the scroll step for smoother effect
-                if (document.documentElement.scrollTop < document.documentElement.scrollHeight - window.innerHeight) {
-                    requestAnimationFrame(smoothScroll); // Keep scrolling smoothly
-                } else {
-                    isScrolling = true; // Stop scrolling when reaching the bottom
-                }
+// Function to trigger smooth auto-scroll
+function autoScroll() {
+    if (!isScrolling) {
+        isScrolling = true;
+        function smoothScroll() {
+            window.scrollBy(0, 1); // Adjust the scroll step for smoother effect
+            if (document.documentElement.scrollTop < document.documentElement.scrollHeight - window.innerHeight) {
+                requestAnimationFrame(smoothScroll); // Keep scrolling smoothly
+            } else {
+                isScrolling = false; // Stop scrolling when reaching the bottom
             }
-            requestAnimationFrame(smoothScroll);
+        }
+
+        // Start smooth scrolling
+        requestAnimationFrame(smoothScroll);
+
+        // Play audio when auto-scroll starts
+        if (!hasPlayed) {
+            audio.play().then(() => {
+                hasPlayed = true; // Set flag to prevent replay
+                console.log('Audio is playing');
+            }).catch(error => {
+                console.error('Playback failed:', error);
+            });
         }
     }
+}
 
-    // Function to reset the inactivity timer
-    function resetTimer() {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            autoScroll();  // Trigger auto-scroll after 5 seconds of no movement
-        }, 5000);  // 5 seconds
-    }
+// Function to reset the inactivity timer
+function resetTimer() {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+        autoScroll();  // Trigger auto-scroll after 8 seconds of no movement
+    }, 8000);  // 8 seconds
+}
 
-    // Listen for scroll events to detect movement
-    window.addEventListener('scroll', resetTimer);
+// Listen for user interaction to enable audio and auto-scroll
+document.addEventListener('click', () => {
+    console.log("User interaction detected. Auto-scroll enabled.");
+    resetTimer(); // Start the inactivity timer
+});
 
-    // Initially start the timer
-    resetTimer();
+// Listen for scroll events to detect movement
+window.addEventListener('scroll', resetTimer);
+
+// Initially start the timer
+resetTimer();
